@@ -9,8 +9,10 @@ import functools
 import json
 import socket
 import sqlite3
+import sys
 import threading
 import time
+import traceback
 import urllib
 import urllib2
 
@@ -231,7 +233,11 @@ def switch_model():
 
 def fetch(sources, source):
   while True:
-    sources[source].data = sources[source].func()
+    try:
+        sources[source].data = sources[source].func()
+    except:
+        traceback.print_exc(file=sys.stdout)
+
     time.sleep(CACHE_TIME)
 
 
