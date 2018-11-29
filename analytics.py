@@ -96,6 +96,26 @@ def mon_alerts():
   return json.dumps(nodes)
 
 
+@analytics('/alerts.hosts')
+def alerts_hosts():
+  result = json.loads(prometheus('ALERTS'))
+  ts = result['data']['result']
+  alerts = collections.defaultdict(int)
+  for alert in ts:
+    labels = alert['metric']
+    if 'host' in labels:
+      host = labels['host']
+      if ':' in host:
+        host = host.split(':')[0]
+      alerts[host] = alerts[host] + 1
+    elif 'instance' in labels:
+      host = labels['instance']
+      if ':' in host:
+        host = host.split(':')[0]
+      alerts[host] = alerts[host] + 1
+  return json.dumps(alerts)
+
+
 @analytics('/snmp.saves')
 def snmp_saves():
   result = json.loads(prometheus('sum(count_over_time({__name__=~".+",instance!=""}[5m])) by (instance)'))
