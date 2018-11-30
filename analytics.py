@@ -238,6 +238,14 @@ def switch_vlans():
     host = data['metric']['instance']
     vlan = data['metric']['index'].split('.', 1)[1]
     nodes[host][vlan] = 1
+
+  result = json.loads(prometheus('changes(dot1qVlanStaticRowStatus{instance!=""}[5m])'))
+  ts = result['data']['result']
+  nodes = collections.defaultdict(dict)
+  for data in ts:
+    host = data['metric']['instance']
+    vlan = data['metric']['index']
+    nodes[host][vlan] = 1
   return json.dumps(nodes)
 
 
