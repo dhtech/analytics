@@ -118,7 +118,7 @@ def alerts_hosts():
 
 @analytics('/snmp.saves')
 def snmp_saves():
-  result = json.loads(prometheus('sum(count_over_time({__name__=~".+",instance!=""}[5m])) by (instance)'))
+  result = json.loads(prometheus('sum(snmp_exported_metrics_count) by (instance)'))
   ts = result['data']['result']
 
   nodes = {x['metric']['instance']: {'metrics': int(x['value'][1])} for x in ts}
