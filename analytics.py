@@ -98,7 +98,7 @@ def mon_alerts():
 
 @analytics('/alerts.hosts')
 def alerts_hosts():
-  result = json.loads(prometheus('ALERTS'))
+  result = json.loads(prometheus('ALERTS{alertstate="firing"}'))
   ts = result['data']['result']
   alerts = collections.defaultdict(int)
   for alert in ts:
