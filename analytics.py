@@ -43,7 +43,7 @@ def analytics(t):
 
 
 def prometheus(query):
-  host = 'http://prometheus.event.dreamhack.se:9090'
+  host = 'http://prometheus1.event.dreamhack.se:9090'
   url = '{host}/api/v1/query?query={query}&time={time}'
 
   socket.setdefaulttimeout(10)
