@@ -212,6 +212,10 @@ def switch_interfaces():
     ('vlanTrunkPortDynamicStatus', 'trunk', 'trunking'),
     ('ifOutErrors', 'errors_out', None, 'rate', '[10m]'),
     ('ifInErrors', 'errors_in', None, 'rate', '[10m]'),
+    ('ifHCInOctets', 'rx_10min', None, 'rate', '[10m]'),
+    ('ifHCInOctets', 'rx', None, 'irate', '[10m]'),
+    ('ifHCOutOctets', 'tx_10min', None, 'rate', '[10m]'),
+    ('ifHCOutOctets', 'tx', None, 'irate', '[10m]'),
     ('ifAdminStatus', 'admin'),
     ('ifHighSpeed', 'speed'),
     ('dot1dStpPortState', 'stp'))
