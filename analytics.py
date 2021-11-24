@@ -13,8 +13,8 @@ import sys
 import threading
 import time
 import traceback
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 
 DB_FILE = '/etc/ipplan.db'
@@ -48,8 +48,8 @@ def prometheus(query):
 
   socket.setdefaulttimeout(10)
 
-  o = urllib2.urlopen(url.format(
-    query=urllib.quote(query), time=int(time.time()), host=host))
+  o = urllib.request.urlopen(url.format(
+    query=urllib.parse.quote(query), time=int(time.time()), host=host))
 
   return o.read()
 
@@ -226,8 +226,8 @@ def switch_interfaces():
       results.append(variables)
 
   for result in results:
-    for node, ifaces in result.iteritems():
-      for iface, props in ifaces.iteritems():
+    for node, ifaces in result.items():
+      for iface, props in ifaces.items():
         nodes[node][iface].update(props)
   return json.dumps(nodes)
 
