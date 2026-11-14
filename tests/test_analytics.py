@@ -62,12 +62,40 @@ def test_alerts_are_counted_per_host(prom):
                                      'd23-a.event.dreamhack.local': 1}
 
 
+PINGS = 'max by (host) (increase(icmp_rtt_seconds_count[1m]))'
+
+
 def test_ping_is_missed_answers_in_the_last_minute(prom):
-  prom({'changes(icmp_rtt_seconds_sum[1m])': [
+  # a ping a second (the default): one answer is one second
+  prom({PINGS: [
       one({'host': 'd23-a.event.dreamhack.local'}, 60),
-      one({'host': 'd24-a.event.dreamhack.local'}, '57.0')]})
+      one({'host': 'd24-a.event.dreamhack.local'}, '57.0'),
+      one({'host': 'd25-a.event.dreamhack.local'}, 0),
+      # what Prometheus estimates is no whole number, and may overshoot
+      one({'host': 'd26-a.event.dreamhack.local'}, '61.02'),
+      one({'host': 'd27-a.event.dreamhack.local'}, '29.6')]})
   assert answer('/ping.status') == {'d23-a.event.dreamhack.local': 0,
-                                    'd24-a.event.dreamhack.local': 3}
+                                    'd24-a.event.dreamhack.local': 3,
+                                    'd25-a.event.dreamhack.local': 60,
+                                    'd26-a.event.dreamhack.local': 0,
+                                    'd27-a.event.dreamhack.local': 30}
+
+
+def test_ping_every_ten_seconds_is_the_same_scale(prom, monkeypatch):
+  # six pings a minute: each answer stands for ten seconds, and the
+  # pages' thresholds (60 = dead, above 30 = warn) mean what they did
+  monkeypatch.setattr(analytics, 'PING_INTERVAL', 10.0)
+  prom({PINGS: [
+      one({'host': 'all.event.dreamhack.local'}, 6),
+      one({'host': 'most.event.dreamhack.local'}, '4.8'),
+      one({'host': 'few.event.dreamhack.local'}, 2),
+      one({'host': 'none.event.dreamhack.local'}, 0),
+      one({'host': 'over.event.dreamhack.local'}, '7.2')]})
+  assert answer('/ping.status') == {'all.event.dreamhack.local': 0,
+                                    'most.event.dreamhack.local': 12,
+                                    'few.event.dreamhack.local': 40,
+                                    'none.event.dreamhack.local': 60,
+                                    'over.event.dreamhack.local': 0}
 
 
 def test_dhcp_usage_comes_from_the_lease_history(prom):

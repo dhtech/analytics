@@ -13,7 +13,7 @@ Every ten seconds it asks Prometheus and reads the network plan
 |---|---|---|
 | `/event.hosts` | the site's hosts with their plan options | the plan |
 | `/alerts.hosts`, `/mon.alerts` | alerts per host | `ALERTS` |
-| `/ping.status` | missed pings in the last minute | `icmp_rtt_seconds_sum` |
+| `/ping.status` | seconds of the last minute without an answer to a ping (0 all answered, 60 none) | [pinger](https://github.com/dhtech/pinger): `icmp_rtt_seconds_count` |
 | `/dhcp.status` | leases and size per network | [lease2db](https://github.com/dhtech/lease2db): `lease2db_scope_*` |
 | `/syslog.status` | log size per sender | `syslog_log_bytes` |
 | `/rancid.status` | saved configuration size per device | `rancid_config_bytes` |
@@ -40,6 +40,7 @@ http://127.0.0.1:5000/; }`).
 | `ANALYTICS_IPPLAN` | `/etc/ipplan.db` | the plan database |
 | `ANALYTICS_SITE` | `EVENT` | the site whose hosts `/event.hosts` lists |
 | `ANALYTICS_CACHE_TIME` | `10` | seconds between two gatherings |
+| `ANALYTICS_PING_INTERVAL` | `1` | seconds between two pings of a host - what `pingerd --interval` is run with |
 
 For development: `python3 analytics.py` (port 5000 on localhost).
 

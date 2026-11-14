@@ -16,6 +16,9 @@ Where things are is taken from the environment:
   ANALYTICS_SITE         the site whose hosts /event.hosts lists
                          (default EVENT)
   ANALYTICS_CACHE_TIME   seconds between two gatherings (default 10)
+  ANALYTICS_PING_INTERVAL  seconds between two pings of a host, as the
+                         ping collectors (pingerd --interval) are run
+                         (default 1)
 
 Run it under a WSGI server with ONE worker process (the gathering
 threads live in it):
@@ -45,6 +48,7 @@ PROMETHEUS = os.environ.get('ANALYTICS_PROMETHEUS',
                             'http://localhost:9090').rstrip('/')
 SITE = os.environ.get('ANALYTICS_SITE', 'EVENT').upper()
 CACHE_TIME = float(os.environ.get('ANALYTICS_CACHE_TIME', '10'))
+PING_INTERVAL = float(os.environ.get('ANALYTICS_PING_INTERVAL', '1'))
 # seconds one question to Prometheus may take
 TIMEOUT = 10
 # before a source has been gathered once: an empty document, so that a
@@ -122,9 +126,21 @@ def event_hosts():
 
 @analytics('/ping.status')
 def ping_status():
-  ts = series('changes(icmp_rtt_seconds_sum[1m])')
+  """Per host: how many seconds of the last minute went without an
+  answer to a ping - 0: every ping was answered, 60: none was. (With a
+  ping a second that is the number of missed pings, which is what the
+  pages have always been given: the map calls 60 a dead switch, the
+  build-up overview warns above 30.)
 
-  nodes = {x['metric']['host']: 60-int(float(x['value'][1])) for x in ts}
+  A host is pinged every PING_INTERVAL seconds, so each answer stands
+  for that many seconds. Where several collectors ping the same host,
+  the one that heard the most counts."""
+  ts = series('max by (host) (increase(icmp_rtt_seconds_count[1m]))')
+
+  nodes = {}
+  for x in ts:
+    answered = float(x['value'][1]) * PING_INTERVAL
+    nodes[x['metric']['host']] = max(0, min(60, int(round(60 - answered))))
   return json.dumps(nodes)
 
 
